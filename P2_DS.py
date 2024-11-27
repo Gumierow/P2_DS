@@ -151,9 +151,9 @@ def inferential_statistics(data):
     t_stat_christmas, p_val_christmas = ttest_ind(christmas_accidents, non_christmas_accidents, nan_policy='omit')
     st.write(f"Estatística t para Natal: {t_stat_christmas:.3f}, valor p: {p_val_christmas:.3f}")
     if p_val_christmas < 0.05:
-        st.write("A diferença de acidentes durante o Natal é estatisticamente significativa.")
+        st.markdown('<p style="color:green;">A diferença de acidentes durante o Natal é estatisticamente significativa.</p>', unsafe_allow_html=True)
     else:
-        st.write("A diferença de acidentes durante o Natal não é estatisticamente significativa.")
+        st.markdown('<p style="color:red;">A diferença de acidentes durante o Natal não é estatisticamente significativa.</p>', unsafe_allow_html=True)
     
     # Teste T para a Páscoa
     easter_accidents = data[data['Easter Period'] == 1]['Age']
@@ -161,9 +161,9 @@ def inferential_statistics(data):
     t_stat_easter, p_val_easter = ttest_ind(easter_accidents, non_easter_accidents, nan_policy='omit')
     st.write(f"Estatística t para Páscoa: {t_stat_easter:.3f}, valor p: {p_val_easter:.3f}")
     if p_val_easter < 0.05:
-        st.write("A diferença de acidentes durante a Páscoa é estatisticamente significativa.")
+        st.markdown('<p style="color:green;">A diferença de acidentes durante a Páscoa é estatisticamente significativa.</p>', unsafe_allow_html=True)
     else:
-        st.write("A diferença de acidentes durante a Páscoa não é estatisticamente significativa.")
+        st.markdown('<p style="color:red;">A diferença de acidentes durante a Páscoa não é estatisticamente significativa.</p>', unsafe_allow_html=True)
 
 # Executar a função principal
 if __name__ == "__main__":
