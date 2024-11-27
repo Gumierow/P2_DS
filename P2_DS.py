@@ -1,4 +1,3 @@
-# Importações necessárias
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -9,46 +8,66 @@ import streamlit as st
 
 # Função principal do Streamlit
 def main():
-    st.title("Análise de Acidentes Fatais na Austrália (1989-2021)")
-    st.sidebar.title("Configurações de Análise")
+    st.title("Análise de dados sobre acidentes fatais na Austrália entre 1989 e 2021.")
+    st.subheader("Esta análise se baseia em dados de acidentes fatais ocorridos na Austrália entre 1989 e 2021. O objetivo é explorar tendências e padrões, com foco nas variáveis mais significativas relacionadas a idade, gênero, período do dia e feriados.")
 
-    # URL do arquivo raw no GitHub
-    url = 'https://raw.githubusercontent.com/Gumierow/P2_DS/refs/heads/main/Crash_Data.csv'
+    # Carregar o dataset do GitHub
+    st.sidebar.title("Configurações de Análise")
+    dataset_url = "https://raw.githubusercontent.com/Gumierow/P2_DS/refs/heads/main/Crash_Data.csv"
+    data = pd.read_csv(dataset_url)
     
-    # Carregar o dataset
-    data = pd.read_csv(url)
-    st.write("### Pré-visualização do Dataset")
+    # Pré-visualização do dataset
+    st.header("Pré-visualização do dataset")
+    st.subheader("Colunas do dataset:")
+    st.write("As colunas presentes no dataset são: 'Year', 'Month', 'Day', 'Dayweek', 'Time', 'Age', 'Gender', 'Crash Severity', 'Crash Type', 'Accident Description', 'Time of day', 'Christmas Period', 'Easter Period'.")
     st.dataframe(data.head())
 
     # Limpeza de dados
+    st.header("Limpeza de dados")
+    st.subheader("Alguns dados foram desconsiderados por não serem pertinentes para nossa análise ou por não conterem dados o suficiente:")
+    columns_to_drop = ['Speed Limit', 'National Remoteness Areas', 'SA4 Name 2016', 'National Road Type', 'Bus Involvement', 'Heavy Rigid Truck Involvement']
+    st.write(f"As colunas removidas são: {', '.join(columns_to_drop)}.")
     data_cleaned = clean_data(data)
-    st.write("### Dados Limpos")
     st.dataframe(data_cleaned.head())
 
-    # Estatísticas descritivas
+    # Estatísticas Descritivas
     st.header("Estatísticas Descritivas")
-    descriptive_stats(data_cleaned)
+    st.write("Estatísticas descritivas são usadas para resumir ou descrever as características básicas dos dados.")
 
-    # Análise Temporal
-    st.header("Análise Temporal")
-    temporal_analysis(data_cleaned)
+    # Total de acidentes por ano
+    st.header("Total de acidentes por ano no período de 1989 a 2021")
+    st.write(f"A taxa de diminuição de acidentes foi de {calculate_decrease_rate(data_cleaned):.2f}%.")
+    total_accidents_per_year(data_cleaned)
+
+    # Distribuição de frequência dos acidentes por mês
+    st.header("Distribuição de frequência relativa dos acidentes por mês de 2010 a 2021")
+    monthly_accidents_distribution(data_cleaned)
+
+    # Distribuição de frequência dos acidentes por idade
+    st.header("Distribuição de frequência dos acidentes por idade de 2010 a 2021")
+    age_distribution(data_cleaned)
+
+    # Comparativo entre jovens homens e jovens mulheres
+    st.header("Comparativo entre jovens homens e jovens mulheres entre 2010 e 2021")
+    st.write("Por meio do último tópico, descobrimos que os motoristas mais jovens são os mais envolvidos em acidentes fatais (talvez por imprudência e por pouca experiência de direção).")
+    gender_comparison(data_cleaned)
+
+    # Acidentes por dia da semana e período
+    st.header("Acidentes por dia da semana e período")
+    accidents_by_day_and_period(data_cleaned)
 
     # Estatística Inferencial
     st.header("Estatística Inferencial")
-    inferential_statistics(data_cleaned)
 
-    # Análise específica: Acidentes entre jovens homens e mulheres no volante
-    st.header("Análise por Gênero (Jovens)")
-    gender_analysis(data_cleaned)
+    # Influência de datas comemorativas
+    st.subheader("A influência de datas comemorativas no número de acidentes")
+    inferential_statistics(data_cleaned)
 
 # Função para limpar os dados
 def clean_data(data):
     data_cleaned = data.copy()
     # Remover colunas irrelevantes
-    columns_to_drop = [
-        'Speed Limit', 'National Remoteness Areas', 'SA4 Name 2016',
-        'National Road Type', 'Bus Involvement', 'Heavy Rigid Truck Involvement'
-    ]
+    columns_to_drop = ['Speed Limit', 'National Remoteness Areas', 'SA4 Name 2016', 'National Road Type', 'Bus Involvement', 'Heavy Rigid Truck Involvement']
     data_cleaned.drop(columns=columns_to_drop, inplace=True, errors='ignore')
     # Conversões de tipos
     data_cleaned['Time'] = pd.to_datetime(data_cleaned['Time'], format='%H:%M', errors='coerce')
@@ -58,81 +77,79 @@ def clean_data(data):
     data_cleaned['Easter Period'] = data_cleaned['Easter Period'].map({'Yes': 1, 'No': 0})
     return data_cleaned
 
-# Função para estatísticas descritivas
-def descriptive_stats(data):
-    st.write("### Medidas Resumo")
-    stats = data.describe(include='all').T
-    st.dataframe(stats)
-    
-    # Histogramas de idade usando Regra de Sturges
-    st.write("### Distribuição de Idade (Histograma)")
-    bins = int(1 + 3.322 * np.log10(len(data)))
+# Total de acidentes por ano
+def total_accidents_per_year(data):
+    yearly_accidents = data['Year'].value_counts().sort_index()
+    st.write("### Total de acidentes por ano")
+    fig = px.line(x=yearly_accidents.index, y=yearly_accidents.values, labels={'x': 'Ano', 'y': 'Acidentes'}, title="Total de Acidentes por Ano")
+    st.plotly_chart(fig)
+
+# Calcular a taxa de diminuição de acidentes
+def calculate_decrease_rate(data):
+    yearly_accidents = data['Year'].value_counts().sort_index()
+    return (yearly_accidents.iloc[0] - yearly_accidents.iloc[-1]) / yearly_accidents.iloc[0] * 100
+
+# Distribuição de acidentes por mês (frequência relativa)
+def monthly_accidents_distribution(data):
+    data_filtered = data[data['Year'] >= 2010]
+    monthly_accidents = data_filtered['Month'].value_counts(normalize=True).sort_index() * 100  # Frequência relativa
+    fig = px.bar(x=monthly_accidents.index, y=monthly_accidents.values, labels={'x': 'Mês', 'y': 'Frequência Relativa (%)'}, title="Frequência Relativa de Acidentes por Mês")
+    st.plotly_chart(fig)
+
+# Distribuição de acidentes por idade
+def age_distribution(data):
+    data_filtered = data[data['Year'] >= 2010]
+    bins = int(1 + 3.322 * np.log10(len(data_filtered)))  # Regra de Sturges
+    st.write(f"Seguindo a regra de Sturges, descobrimos que o número ideal de classes para dividir os dados é {bins}.")
     fig, ax = plt.subplots()
-    ax.hist(data['Age'], bins=bins, color='skyblue', edgecolor='black', alpha=0.7)
-    ax.set_title('Distribuição de Idade')
+    ax.hist(data_filtered['Age'], bins=bins, color='skyblue', edgecolor='black', alpha=0.7)
+    ax.set_title('Distribuição de Idade dos Envolvidos')
     ax.set_xlabel('Idade')
     ax.set_ylabel('Frequência')
     st.pyplot(fig)
 
-# Função para análise temporal
-def temporal_analysis(data):
-    # Frequência por mês
-    monthly_accidents = data['Month'].value_counts().sort_index()
-    st.write("### Frequência de Acidentes por Mês")
-    fig = px.bar(x=monthly_accidents.index, y=monthly_accidents.values, labels={'x': 'Mês', 'y': 'Acidentes'}, title="Frequência Mensal de Acidentes")
+# Comparativo entre jovens homens e mulheres
+def gender_comparison(data):
+    data_young = data[(data['Age Group'] == '17_to_25') & (data['Gender'].notnull())]
+    gender_counts = data_young['Gender'].value_counts()
+    st.write(f"Homens dessa faixa etária têm {gender_counts['Male'] / gender_counts['Female']:.2f} vezes mais acidentes do que as mulheres.")
+    fig = px.bar(x=gender_counts.index, y=gender_counts.values, labels={'x': 'Gênero', 'y': 'Número de Acidentes'}, title="Acidentes por Gênero entre Jovens")
     st.plotly_chart(fig)
 
-    # Frequência por dia da semana
-    weekly_accidents = data['Dayweek'].value_counts()
-    st.write("### Frequência de Acidentes por Dia da Semana")
-    fig = px.bar(x=weekly_accidents.index, y=weekly_accidents.values, labels={'x': 'Dia da Semana', 'y': 'Acidentes'}, title="Acidentes por Dia da Semana")
-    st.plotly_chart(fig)
+# Acidentes por dia da semana e período
+def accidents_by_day_and_period(data):
+    data_filtered = data[data['Year'] >= 2011]
+    accidents_day_period = data_filtered.groupby(['Dayweek', 'Time of day']).size().unstack().fillna(0)
+    
+    # Exibe os rótulos das colunas para verificação
+    st.write("Rótulos das colunas de 'Time of day':", accidents_day_period.columns)
+    
+    # Ajuste os rótulos conforme necessário
+    try:
+        diurnal_to_nocturnal_ratio = (
+            accidents_day_period['Diurnal'].sum() / accidents_day_period['Nocturnal'].sum()
+        )
+        st.write(f"A proporção de acidentes diurnos para noturnos é de {diurnal_to_nocturnal_ratio:.2f}.")
+    except KeyError:
+        st.error("Os rótulos esperados ('Diurnal' e 'Nocturnal') não foram encontrados nas colunas de 'Time of day'.")
 
-    # Frequência por períodos do dia
-    time_of_day_accidents = data['Time of day'].value_counts()
-    st.write("### Acidentes por Período do Dia")
-    fig = px.bar(x=time_of_day_accidents.index, y=time_of_day_accidents.values, labels={'x': 'Período do Dia', 'y': 'Acidentes'}, title="Acidentes por Período do Dia")
-    st.plotly_chart(fig)
+    accidents_day_period.plot(kind='bar', stacked=False, color=['yellow', 'blue'])
+    plt.title("Acidentes por Dia da Semana e Período")
+    plt.xlabel("Dia da Semana")
+    plt.ylabel("Quantidade de Acidentes")
+    st.pyplot(plt)
 
-    # Tendência Anual
-    yearly_accidents = data['Year'].value_counts().sort_index()
-    st.write("### Tendência Anual de Acidentes")
-    fig = px.line(x=yearly_accidents.index, y=yearly_accidents.values, labels={'x': 'Ano', 'y': 'Acidentes'}, title="Tendência Anual de Acidentes")
-    st.plotly_chart(fig)
-
-# Função para estatística inferencial
+# Teste T para influências de datas comemorativas
 def inferential_statistics(data):
-    # Teste T para feriados vs não feriados
-    st.write("### Teste T de Student")
     christmas_accidents = data[data['Christmas Period'] == 1]['Age']
     non_christmas_accidents = data[data['Christmas Period'] == 0]['Age']
     t_stat, p_val = ttest_ind(christmas_accidents, non_christmas_accidents, nan_policy='omit')
     st.write(f"Estatística t: {t_stat:.3f}, Valor p: {p_val:.3f}")
     if p_val < 0.05:
-        st.success("Diferença estatisticamente significativa entre feriados de Natal e períodos normais.")
+        st.success("Diferença estatisticamente significativa no número de acidentes durante o período de Natal.")
     else:
-        st.info("Nenhuma diferença estatisticamente significativa encontrada.")
+        st.info("Sem evidência de diferença estatística significativa no número de acidentes durante o período de Natal.")
 
-# Função para análise por gênero (jovens)
-def gender_analysis(data):
-    # Filtrar jovens (idade entre 17 e 25) e registros com Gender não nulo
-    data_young = data[(data['Age Group'] == '17_to_25') & (data['Gender'].notnull())]
-    if data_young.empty:
-        st.warning("Não há dados suficientes para análise de jovens por gênero.")
-        return
-    
-    # Contagem por gênero
-    gender_counts = data_young['Gender'].value_counts()
-    st.write("### Distribuição por Gênero entre Jovens")
-    fig = px.bar(x=gender_counts.index, y=gender_counts.values, labels={'x': 'Gênero', 'y': 'Número de Acidentes'}, title="Acidentes por Gênero (17-25 anos)")
-    st.plotly_chart(fig)
-
-    # Taxa de acidentes por gênero
-    total_accidents = len(data_young)
-    gender_rates = (gender_counts / total_accidents) * 100
-    st.write("### Taxa de Acidentes por Gênero")
-    st.dataframe(gender_rates)
-
-# Executar o aplicativo
-if __name__ == '__main__':
+# Execução da aplicação
+if __name__ == "__main__":
     main()
