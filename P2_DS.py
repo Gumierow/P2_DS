@@ -12,59 +12,60 @@ def main():
     st.subheader("Esta análise se baseia em dados de acidentes fatais ocorridos na Austrália entre 1989 e 2021. O objetivo é explorar tendências e padrões, com foco nas variáveis mais significativas relacionadas a idade, gênero, período do dia e feriados.")
 
     # Carregar o dataset do GitHub
-    st.sidebar.title("Configurações de Análise")
     dataset_url = "https://raw.githubusercontent.com/Gumierow/P2_DS/refs/heads/main/Crash_Data.csv"
     data = pd.read_csv(dataset_url)
     
-    # Pré-visualização do dataset
-    st.header("Pré-visualização do dataset")
-    st.subheader("Colunas do dataset:")
-    st.write("As colunas presentes no dataset são: 'Year', 'Month', 'Day', 'Dayweek', 'Time', 'Age', 'Gender', 'Crash Severity', 'Crash Type', 'Accident Description', 'Time of day', 'Christmas Period', 'Easter Period'.")
-    st.dataframe(data.head())
-
     # Limpeza de dados
-    st.header("Limpeza de dados")
-    st.subheader("Alguns dados foram desconsiderados por não serem pertinentes para nossa análise ou por não conterem dados o suficiente:")
-    columns_to_drop = ['Speed Limit', 'National Remoteness Areas', 'SA4 Name 2016', 'National Road Type', 'Bus Involvement', 'Heavy Rigid Truck Involvement']
-    st.write(f"As colunas removidas são: {', '.join(columns_to_drop)}.")
     data_cleaned = clean_data(data)
-    st.dataframe(data_cleaned.head())
 
-    # Estatísticas Descritivas
-    st.header("Estatísticas Descritivas")
-    st.write("Estatísticas descritivas são usadas para resumir ou descrever as características básicas dos dados.")
+    # Barra lateral de navegação
+    st.sidebar.title("Configurações de Análise")
+    options = ["Introdução", "Estatística Descritiva", "Estatística Inferencial", "Conclusão"]
+    selected_option = st.sidebar.radio("Escolha a análise", options)
 
-    # Total de acidentes por ano
-    st.header("Total de acidentes por ano no período de 1989 a 2021")
-    st.write(f"A taxa de diminuição de acidentes foi de {calculate_decrease_rate(data_cleaned):.2f}%.")
-    total_accidents_per_year(data_cleaned)
+    # Seção de Introdução
+    if selected_option == "Introdução":
+        st.header("Introdução")
+        st.subheader("Pré-visualização e Limpeza dos dados")
+        st.write("As colunas presentes no dataset são: 'Year', 'Month', 'Day', 'Dayweek', 'Time', 'Age', 'Gender', 'Crash Severity', 'Crash Type', 'Accident Description', 'Time of day', 'Christmas Period', 'Easter Period'.")
+        st.dataframe(data.head())
+        st.write(f"As colunas removidas durante a limpeza foram: 'Speed Limit', 'National Remoteness Areas', 'SA4 Name 2016', 'National Road Type', 'Bus Involvement', 'Heavy Rigid Truck Involvement'.")
+        st.dataframe(data_cleaned.head())
 
-    # Distribuição de frequência dos acidentes por mês
-    st.header("Distribuição de frequência relativa dos acidentes por mês de 2010 a 2021")
-    monthly_accidents_distribution(data_cleaned)
+    # Seção de Estatística Descritiva
+    elif selected_option == "Estatística Descritiva":
+        st.header("Estatísticas Descritivas")
+        st.subheader("Total de acidentes por ano")
+        total_accidents_per_year(data_cleaned)
 
-    # Distribuição de frequência dos acidentes por idade
-    st.header("Distribuição de frequência dos acidentes por idade de 2010 a 2021")
-    age_distribution(data_cleaned)
+        st.subheader("Distribuição de frequência dos acidentes por mês de 2010 a 2021")
+        monthly_accidents_distribution(data_cleaned)
 
-    # Comparativo entre jovens homens e jovens mulheres
-    st.header("Comparativo entre jovens homens e jovens mulheres entre 2010 e 2021")
-    st.write("Por meio do último tópico, descobrimos que os motoristas mais jovens são os mais envolvidos em acidentes fatais (talvez por imprudência e por pouca experiência de direção).")
-    gender_comparison(data_cleaned)
+        st.subheader("Distribuição de frequência dos acidentes por idade de 2010 a 2021")
+        age_distribution(data_cleaned)
 
-    # Boxplot de Gênero e Idade
-    gender_age_boxplot(data_cleaned)
+        st.subheader("Comparativo entre jovens homens e jovens mulheres entre 2010 e 2021")
+        gender_comparison(data_cleaned)
 
-    # Acidentes por dia da semana e período
-    st.header("Acidentes por dia da semana e período")
-    accidents_by_day_and_period(data_cleaned)
+        st.subheader("Boxplot de Gênero e Idade dos Envolvidos")
+        gender_age_boxplot(data_cleaned)
 
-    # Estatística Inferencial
-    st.header("Estatística Inferencial")
+        st.subheader("Acidentes por dia da semana e período")
+        accidents_by_day_and_period(data_cleaned)
 
-    # Influência de datas comemorativas
-    st.subheader("A influência de datas comemorativas no número de acidentes")
-    inferential_statistics(data_cleaned)
+    # Seção de Estatística Inferencial
+    elif selected_option == "Estatística Inferencial":
+        st.header("Estatística Inferencial")
+        st.subheader("A influência de datas comemorativas no número de acidentes")
+        inferential_statistics(data_cleaned)
+
+    # Seção de Conclusão
+    elif selected_option == "Conclusão":
+        st.header("Conclusão da Análise")
+        st.write("""
+            Concluímos que o Natal tem um grande impacto na taxa de acidentes, sendo um período festivo que leva as pessoas a sair de casa e viajar, o que aumenta a probabilidade de acidentes. 
+            Além disso, observamos que a maioria dos acidentes fatais são causados por motoristas jovens, com uma disparidade notável entre os gêneros: os homens causam 3,32 vezes mais acidentes fatais do que as mulheres.
+        """)
 
 # Função para limpar os dados
 def clean_data(data):
@@ -83,7 +84,6 @@ def clean_data(data):
 # Total de acidentes por ano
 def total_accidents_per_year(data):
     yearly_accidents = data['Year'].value_counts().sort_index()
-    st.write("### Total de acidentes por ano")
     fig = px.line(x=yearly_accidents.index, y=yearly_accidents.values, labels={'x': 'Ano', 'y': 'Acidentes'}, title="Total de Acidentes por Ano")
     st.plotly_chart(fig)
 
@@ -149,21 +149,21 @@ def inferential_statistics(data):
     christmas_accidents = data[data['Christmas Period'] == 1]['Age']
     non_christmas_accidents = data[data['Christmas Period'] == 0]['Age']
     t_stat_christmas, p_val_christmas = ttest_ind(christmas_accidents, non_christmas_accidents, nan_policy='omit')
-    st.write(f"Estatística t para Natal: {t_stat_christmas:.3f}, valor p: {p_val_christmas:.3f}")
+    st.write(f"Estatística t para o Natal: {t_stat_christmas:.2f}, valor-p: {p_val_christmas:.4f}")
     if p_val_christmas < 0.05:
-        st.markdown('<p style="color:green;">A diferença de acidentes durante o Natal é estatisticamente significativa.</p>', unsafe_allow_html=True)
+        st.write("A diferença de acidentes durante o Natal é estatisticamente significativa.")
     else:
-        st.markdown('<p style="color:red;">A diferença de acidentes durante o Natal não é estatisticamente significativa.</p>', unsafe_allow_html=True)
+        st.write("A diferença de acidentes durante o Natal não é estatisticamente significativa.")
     
     # Teste T para a Páscoa
     easter_accidents = data[data['Easter Period'] == 1]['Age']
     non_easter_accidents = data[data['Easter Period'] == 0]['Age']
     t_stat_easter, p_val_easter = ttest_ind(easter_accidents, non_easter_accidents, nan_policy='omit')
-    st.write(f"Estatística t para Páscoa: {t_stat_easter:.3f}, valor p: {p_val_easter:.3f}")
+    st.write(f"Estatística t para a Páscoa: {t_stat_easter:.2f}, valor-p: {p_val_easter:.4f}")
     if p_val_easter < 0.05:
-        st.markdown('<p style="color:green;">A diferença de acidentes durante a Páscoa é estatisticamente significativa.</p>', unsafe_allow_html=True)
+        st.write("A diferença de acidentes durante a Páscoa é estatisticamente significativa.")
     else:
-        st.markdown('<p style="color:red;">A diferença de acidentes durante a Páscoa não é estatisticamente significativa.</p>', unsafe_allow_html=True)
+        st.write("A diferença de acidentes durante a Páscoa não é estatisticamente significativa.")
 
 # Executar a função principal
 if __name__ == "__main__":
