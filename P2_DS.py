@@ -52,6 +52,9 @@ def main():
     st.write("Por meio do último tópico, descobrimos que os motoristas mais jovens são os mais envolvidos em acidentes fatais (talvez por imprudência e por pouca experiência de direção).")
     gender_comparison(data_cleaned)
 
+    # Boxplot de Gênero e Idade
+    gender_age_boxplot(data_cleaned)
+
     # Acidentes por dia da semana e período
     st.header("Acidentes por dia da semana e período")
     accidents_by_day_and_period(data_cleaned)
@@ -115,6 +118,17 @@ def gender_comparison(data):
     fig = px.bar(x=gender_counts.index, y=gender_counts.values, labels={'x': 'Gênero', 'y': 'Número de Acidentes'}, title="Acidentes por Gênero entre Jovens")
     st.plotly_chart(fig)
 
+# Boxplot de Gênero e Idade dos Envolvidos
+def gender_age_boxplot(data):
+    st.header("Boxplot de Gênero e Idade dos Envolvidos")
+    data_filtered = data[data['Gender'].notnull()]
+    plt.figure(figsize=(8,6))
+    sns.boxplot(x='Gender', y='Age', data=data_filtered, palette='Set2')
+    plt.title("Distribuição de Idade por Gênero dos Envolvidos em Acidentes")
+    plt.xlabel("Gênero")
+    plt.ylabel("Idade")
+    st.pyplot(plt)
+
 # Acidentes por dia da semana e período
 def accidents_by_day_and_period(data):
     data_filtered = data[data['Year'] >= 2011]
@@ -135,22 +149,22 @@ def inferential_statistics(data):
     christmas_accidents = data[data['Christmas Period'] == 1]['Age']
     non_christmas_accidents = data[data['Christmas Period'] == 0]['Age']
     t_stat_christmas, p_val_christmas = ttest_ind(christmas_accidents, non_christmas_accidents, nan_policy='omit')
-    st.write(f"Estatística t para Natal: {t_stat_christmas:.3f}, Valor p para Natal: {p_val_christmas:.3f}")
+    st.write(f"Estatística t para Natal: {t_stat_christmas:.3f}, valor p: {p_val_christmas:.3f}")
     if p_val_christmas < 0.05:
-        st.success("Diferença estatisticamente significativa no número de acidentes durante o período de Natal.")
+        st.write("A diferença de acidentes durante o Natal é estatisticamente significativa.")
     else:
-        st.info("Sem evidência de diferença estatística significativa no número de acidentes durante o período de Natal.")
+        st.write("A diferença de acidentes durante o Natal não é estatisticamente significativa.")
     
     # Teste T para a Páscoa
     easter_accidents = data[data['Easter Period'] == 1]['Age']
     non_easter_accidents = data[data['Easter Period'] == 0]['Age']
     t_stat_easter, p_val_easter = ttest_ind(easter_accidents, non_easter_accidents, nan_policy='omit')
-    st.write(f"Estatística t para Páscoa: {t_stat_easter:.3f}, Valor p para Páscoa: {p_val_easter:.3f}")
+    st.write(f"Estatística t para Páscoa: {t_stat_easter:.3f}, valor p: {p_val_easter:.3f}")
     if p_val_easter < 0.05:
-        st.success("Diferença estatisticamente significativa no número de acidentes durante o período da Páscoa.")
+        st.write("A diferença de acidentes durante a Páscoa é estatisticamente significativa.")
     else:
-        st.info("Sem evidência de diferença estatística significativa no número de acidentes durante o período da Páscoa.")
+        st.write("A diferença de acidentes durante a Páscoa não é estatisticamente significativa.")
 
-# Rodar a aplicação Streamlit
+# Executar a função principal
 if __name__ == "__main__":
     main()
