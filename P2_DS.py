@@ -131,15 +131,26 @@ def accidents_by_day_and_period(data):
 
 # Teste T para influências de datas comemorativas
 def inferential_statistics(data):
+    # Teste T para o Natal
     christmas_accidents = data[data['Christmas Period'] == 1]['Age']
     non_christmas_accidents = data[data['Christmas Period'] == 0]['Age']
-    t_stat, p_val = ttest_ind(christmas_accidents, non_christmas_accidents, nan_policy='omit')
-    st.write(f"Estatística t: {t_stat:.3f}, Valor p: {p_val:.3f}")
-    if p_val < 0.05:
+    t_stat_christmas, p_val_christmas = ttest_ind(christmas_accidents, non_christmas_accidents, nan_policy='omit')
+    st.write(f"Estatística t para Natal: {t_stat_christmas:.3f}, Valor p para Natal: {p_val_christmas:.3f}")
+    if p_val_christmas < 0.05:
         st.success("Diferença estatisticamente significativa no número de acidentes durante o período de Natal.")
     else:
         st.info("Sem evidência de diferença estatística significativa no número de acidentes durante o período de Natal.")
+    
+    # Teste T para a Páscoa
+    easter_accidents = data[data['Easter Period'] == 1]['Age']
+    non_easter_accidents = data[data['Easter Period'] == 0]['Age']
+    t_stat_easter, p_val_easter = ttest_ind(easter_accidents, non_easter_accidents, nan_policy='omit')
+    st.write(f"Estatística t para Páscoa: {t_stat_easter:.3f}, Valor p para Páscoa: {p_val_easter:.3f}")
+    if p_val_easter < 0.05:
+        st.success("Diferença estatisticamente significativa no número de acidentes durante o período da Páscoa.")
+    else:
+        st.info("Sem evidência de diferença estatística significativa no número de acidentes durante o período da Páscoa.")
 
-# Execução da aplicação
+# Rodar a aplicação Streamlit
 if __name__ == "__main__":
     main()
