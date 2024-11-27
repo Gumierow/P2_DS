@@ -100,7 +100,6 @@ def monthly_accidents_distribution(data):
 def age_distribution(data):
     data_filtered = data[data['Year'] >= 2010]
     bins = int(1 + 3.322 * np.log10(len(data_filtered)))  # Regra de Sturges
-    st.write(f"Seguindo a regra de Sturges, descobrimos que o número ideal de classes para dividir os dados é {bins}.")
     fig, ax = plt.subplots()
     ax.hist(data_filtered['Age'], bins=bins, color='skyblue', edgecolor='black', alpha=0.7)
     ax.set_title('Distribuição de Idade dos Envolvidos')
@@ -120,19 +119,10 @@ def gender_comparison(data):
 def accidents_by_day_and_period(data):
     data_filtered = data[data['Year'] >= 2011]
     accidents_day_period = data_filtered.groupby(['Dayweek', 'Time of day']).size().unstack().fillna(0)
-    
-    # Exibe os rótulos das colunas para verificação
-    st.write("Rótulos das colunas de 'Time of day':", accidents_day_period.columns)
-    
-    # Ajuste os rótulos conforme necessário
-    try:
-        diurnal_to_nocturnal_ratio = (
-            accidents_day_period['Diurnal'].sum() / accidents_day_period['Nocturnal'].sum()
-        )
-        st.write(f"A proporção de acidentes diurnos para noturnos é de {diurnal_to_nocturnal_ratio:.2f}.")
-    except KeyError:
-        st.error("Os rótulos esperados ('Diurnal' e 'Nocturnal') não foram encontrados nas colunas de 'Time of day'.")
-
+    diurnal_to_nocturnal_ratio = (
+        accidents_day_period['Day'].sum() / accidents_day_period['Night'].sum()
+    )
+    st.write(f"A proporção de acidentes diurnos para noturnos é de {diurnal_to_nocturnal_ratio:.2f}.")
     accidents_day_period.plot(kind='bar', stacked=False, color=['yellow', 'blue'])
     plt.title("Acidentes por Dia da Semana e Período")
     plt.xlabel("Dia da Semana")
